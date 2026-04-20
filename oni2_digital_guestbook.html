@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第2回 鬼交流会展・掌中宇宙</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+:root {
+  --bg:       #f5f0e8;
+  --card:     #ffffff;
+  --ink:      #1a1a1a;
+  --accent:   #b8933a;
+  --red:      #8b2020;
+  --muted:    #7a6e5e;
+  --border:   #c8b88a;
+  --hbg:      #1a1a1a;
+  --hcolor:   #f5f0e8;
+  --selbg:    #1a1a1a;
+  --selcolor: #f5f0e8;
+  --btnbg:    #f5f0e8;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; font-size:16px; }
+
+/* ===== 画面切替 ===== */
+.screen { display:none; min-height:100vh; }
+.screen.active { display:block; }
+#screen-cover.active { display:flex; }
+#screen-thanks-exit.active { display:flex; }
+#screen-vote-thanks.active { display:flex; }
+
+/* ===== 固定ナビ ===== */
+.nav-bar {
+  position:sticky; top:0; z-index:100;
+  background:var(--hbg);
+  border-bottom:3px solid var(--accent);
+  padding:10px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-title { font-size:13px; color:var(--accent); font-weight:700; }
+.nav-btn {
+  background:transparent; border:1px solid var(--accent);
+  color:var(--accent); font-family:'Noto Sans JP',sans-serif;
+  font-size:13px; font-weight:700; padding:7px 14px;
+  cursor:pointer; border-radius:4px;
+}
+
+/* ===== ページヘッダー ===== */
+.page-header {
+  background:var(--hbg);
+  border-bottom:3px solid var(--accent);
+  padding:16px 14px; text-align:center;
+}
+.ph-sub { font-size:11px; letter-spacing:0.25em; color:var(--accent); margin-bottom:6px; font-weight:700; }
+.ph-title { font-size:20px; font-weight:700; color:var(--hcolor); }
+.ph-badge { display:inline-block; margin-top:8px; font-size:11px; padding:3px 12px; border-radius:20px; background:#333; color:var(--accent); border:1px solid #555; }
+
+/* ===== セクション ===== */
+.section { margin:14px 12px 0; background:var(--card); border-radius:8px; border:1px solid var(--border); overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+.sec-head { background:var(--hbg); color:var(--hcolor); padding:11px 14px; font-size:15px; font-weight:700; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border); }
+.sec-num { background:var(--accent); color:#fff; font-size:11px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700; }
+.sec-body { padding:14px; }
+
+/* ===== ボタングリッド ===== */
+.btn-grid { display:grid; gap:8px; }
+.col2 { grid-template-columns:1fr 1fr; }
+.col3 { grid-template-columns:1fr 1fr 1fr; }
+.col5 { grid-template-columns:repeat(5,1fr); }
+
+.choice-btn, .age-btn {
+  background:var(--btnbg); border:2px solid var(--border); border-radius:8px;
+  padding:13px 8px; font-family:'Noto Sans JP',sans-serif;
+  font-size:15px; font-weight:500; color:var(--ink);
+  cursor:pointer; text-align:center; transition:all 0.15s; line-height:1.4;
+}
+.age-btn { padding:11px 4px; font-size:13px; }
+.choice-btn.selected, .age-btn.selected {
+  background:var(--selbg); border-color:var(--selbg); color:var(--selcolor);
+}
+
+/* ===== 入力欄 ===== */
+.field-group { margin-bottom:20px; }
+.field-label { font-size:13px; color:var(--muted); letter-spacing:0.1em; display:block; margin-bottom:8px; }
+.req { color:var(--red); margin-left:4px; }
+.field-input {
+  width:100%; padding:13px 14px;
+  border:2px solid var(--border); background:var(--card);
+  font-family:'Noto Sans JP',sans-serif; font-size:16px; color:var(--ink);
+  outline:none; border-radius:6px; transition:border-color 0.2s;
+}
+.field-input:focus { border-color:var(--accent); }
+.field-input::placeholder { color:#bbb; }
+select.field-input {
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b8933a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center;
+}
+.error-hint { font-size:13px; color:var(--red); margin-top:6px; display:none; }
+.error-hint.show { display:block; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+.field-error { animation:shake 0.4s ease; border-color:var(--red)!important; box-shadow:0 0 0 3px rgba(139,32,32,0.15); }
+
+/* ===== 来場日時 ===== */
+.visit-box { margin:14px 12px 0; background:var(--card); border:2px solid var(--accent); border-radius:8px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+.visit-label { font-size:13px; color:var(--muted); }
+.visit-val { font-size:18px; font-weight:700; color:var(--accent); }
+
+/* ===== メインボタン ===== */
+.main-btn {
+  width:100%; padding:18px 16px; border:none; border-radius:8px;
+  font-family:'Noto Sans JP',sans-serif; font-size:18px; font-weight:700;
+  cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;
+  transition:opacity 0.2s;
+}
+.main-btn:hover { opacity:0.85; }
+.btn-black { background:var(--ink); color:var(--hcolor); }
+.btn-black .btn-sub { color:var(--accent); }
+.btn-gold {
+  background:linear-gradient(135deg,#b8933a,#d4aa5a,#b8933a);
+  color:var(--ink);
+  animation:goldPulse 2s ease-in-out infinite;
+}
+.btn-gold .btn-sub { color:#3a2800; }
+@keyframes goldPulse { 0%,100%{box-shadow:0 4px 16px rgba(184,147,58,0.5);} 50%{box-shadow:0 4px 28px rgba(212,170,90,0.9);} }
+.btn-outline { background:transparent; border:2px solid var(--accent)!important; color:var(--ink); }
+.btn-outline .btn-sub { color:var(--muted); }
+.btn-red { background:var(--red); color:#fff; }
+.btn-red .btn-sub { color:rgba(255,255,255,0.8); }
+.btn-sub { font-size:13px; font-weight:400; }
+.btn-ghost { background:transparent; border:1px solid var(--border)!important; color:var(--muted); font-size:15px; }
+
+/* ===== カバー ===== */
+#screen-cover {
+  background:var(--hbg); min-height:100vh;
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 20px; border-top:4px solid var(--accent);
+}
+.cover-wrap { max-width:400px; width:100%; text-align:center; }
+.cover-sub { font-size:12px; letter-spacing:0.25em; color:var(--accent); margin-bottom:10px; font-weight:700; }
+.cover-title { font-size:28px; font-weight:700; color:var(--hcolor); margin-bottom:4px; }
+.cover-sub2 { font-size:22px; font-weight:700; color:var(--accent); margin-bottom:20px; }
+.cover-rule { width:40px; height:2px; background:var(--accent); margin:0 auto 16px; }
+.cover-date { font-size:15px; color:rgba(245,240,232,0.6); line-height:2; margin-bottom:32px; }
+
+/* ===== 作家グリッド（コメント用） ===== */
+.artist-grid-wrap { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; }
+.artist-tile {
+  background:var(--btnbg); border:2px solid var(--border); border-radius:8px;
+  padding:13px 8px; font-family:'Noto Sans JP',sans-serif;
+  font-size:14px; font-weight:500; color:var(--ink);
+  cursor:pointer; text-align:center; transition:all 0.15s; line-height:1.4;
+}
+.artist-tile:hover { background:#ede8d8; }
+.tile-no { font-size:10px; color:var(--muted); display:block; margin-bottom:2px; }
+.tile-badge { font-size:10px; color:var(--red); display:block; margin-top:3px; }
+
+/* ===== コメント ===== */
+.comment-form { margin:14px 12px 0; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; }
+.sent-box { margin:14px 12px 0; background:#fff8ee; border:2px solid var(--accent); border-radius:8px; padding:24px 18px; text-align:center; display:none; }
+.sent-box.show { display:block; }
+.sent-another { background:transparent; border:2px solid var(--accent); color:var(--accent); border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:15px; font-weight:700; padding:12px 28px; cursor:pointer; margin-top:14px; }
+.comments-wrap { margin:14px 12px 40px; }
+.comments-title { font-size:13px; color:var(--muted); letter-spacing:0.15em; border-bottom:2px solid var(--border); padding-bottom:10px; }
+.comment-item { padding:16px 0; border-bottom:1px solid var(--border); }
+.c-meta { display:flex; gap:10px; align-items:baseline; margin-bottom:6px; flex-wrap:wrap; }
+.c-name { font-size:14px; font-weight:700; }
+.c-info { font-size:12px; color:var(--muted); }
+.c-date { font-size:11px; color:#bbb; }
+.c-text { font-size:15px; line-height:1.8; }
+.no-comment { font-size:14px; color:#bbb; text-align:center; padding:28px 0; }
+
+/* ===== 投票（固定バー） ===== */
+.sticky-bar { position:sticky; top:0; z-index:50; background:var(--hbg); border-bottom:2px solid #333; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,0.12); }
+.sticky-label { font-size:11px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+.slots { display:flex; gap:6px; }
+.slot { flex:1; border-radius:6px; padding:8px 6px; text-align:center; font-size:12px; font-weight:700; line-height:1.3; border:2px dashed #444; background:#2a2a2a; color:#666; transition:all 0.25s; }
+.slot .slot-num { font-size:10px; font-weight:400; display:block; margin-bottom:2px; }
+.slot.filled { background:var(--red); border:2px solid var(--red); color:#fff; }
+.submit-sticky { margin-top:8px; width:100%; background:var(--hbg); color:var(--hcolor); border:none; border-radius:8px; padding:13px; font-family:'Noto Sans JP',sans-serif; font-size:16px; font-weight:700; cursor:pointer; opacity:0.3; pointer-events:none; display:none; }
+.submit-sticky.ready { opacity:1; pointer-events:auto; display:block; animation:voteReady 1.2s ease-in-out infinite; border:2px solid rgba(255,150,150,0.6); font-size:18px; }
+@keyframes voteReady { 0%,100%{background:#cc0000;box-shadow:0 0 0 0 rgba(255,50,50,0.7);} 50%{background:#ff2222;box-shadow:0 0 0 14px rgba(255,50,50,0);} }
+
+/* ===== 投票・作家ボタン ===== */
+.vote-artist-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; }
+.vote-artist-btn { background:var(--btnbg); border:2px solid var(--border); border-radius:8px; padding:13px 8px; font-family:'Noto Sans JP',sans-serif; font-size:14px; font-weight:500; color:var(--ink); cursor:pointer; text-align:center; transition:all 0.15s; line-height:1.4; }
+.vote-artist-btn .vno { font-size:10px; color:var(--muted); display:block; margin-bottom:2px; }
+.vote-artist-btn.selected { background:var(--red); border-color:var(--red); color:#fff; }
+.vote-artist-btn.selected .vno { color:rgba(255,255,255,0.7); }
+
+/* ===== プレゼントバナー ===== */
+.present-banner {
+  background:linear-gradient(135deg,#b8933a,#d4aa5a,#b8933a);
+  padding:14px 16px; text-align:center;
+  border-bottom:2px solid #8b6e20;
+  animation:bannerGlow 2s ease-in-out infinite;
+}
+@keyframes bannerGlow { 0%,100%{box-shadow:0 2px 8px rgba(184,147,58,0.4);} 50%{box-shadow:0 2px 20px rgba(212,170,90,0.8);} }
+.present-banner-text { font-size:16px; font-weight:700; color:var(--ink); line-height:1.6; }
+.present-banner-sub { font-size:12px; color:#5a3e00; margin-top:2px; }
+
+/* ===== 投票完了 ===== */
+#screen-vote-thanks {
+  background:var(--hbg); min-height:100vh;
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 24px; text-align:center;
+}
+.vt-circle { width:100px; height:100px; background:linear-gradient(135deg,#b8933a,#d4aa5a); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:44px; }
+.vt-accepted { font-size:13px; color:var(--accent); font-weight:700; margin-bottom:12px; padding:6px 16px; border:2px solid var(--accent); border-radius:8px; display:inline-block; }
+.vt-title { font-size:26px; font-weight:700; color:#fff; margin-bottom:10px; }
+.vt-line { width:40px; height:3px; background:var(--accent); margin:14px auto; border-radius:2px; }
+.vt-sub { font-size:16px; color:rgba(245,240,232,0.75); line-height:2; }
+.present-box { margin:28px 0 0; background:linear-gradient(135deg,#b8933a,#d4aa5a,#b8933a); border-radius:12px; padding:24px 20px; text-align:center; width:100%; max-width:340px; animation:goldPulse2 2s ease-in-out infinite; }
+@keyframes goldPulse2 { 0%,100%{box-shadow:0 4px 16px rgba(184,147,58,0.5);} 50%{box-shadow:0 4px 32px rgba(212,170,90,0.9);} }
+.present-icon { font-size:40px; margin-bottom:10px; }
+.present-title { font-size:20px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+.present-desc { font-size:15px; color:#3a2800; line-height:1.8; margin-bottom:8px; }
+.present-note { font-size:12px; color:#5a4000; }
+
+/* ===== thanks-exit ===== */
+#screen-thanks-exit {
+  background:var(--hbg); min-height:100vh;
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 20px; text-align:center;
+}
+
+/* ===== パスワード ===== */
+.pw-screen { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:300; align-items:center; justify-content:center; }
+.pw-screen.active { display:flex; }
+.pw-box { background:#fff; border-radius:12px; padding:32px 24px; width:290px; text-align:center; }
+.pw-title { font-size:16px; font-weight:700; color:#2d2d2d; margin-bottom:16px; }
+.pw-input { width:100%; border:2px solid #ddd; border-radius:6px; padding:12px; font-size:18px; text-align:center; letter-spacing:0.3em; outline:none; font-family:monospace; }
+.pw-input:focus { border-color:var(--accent); }
+.pw-submit { margin-top:12px; width:100%; background:var(--accent); color:#fff; border:none; border-radius:6px; padding:13px; font-family:'Noto Sans JP',sans-serif; font-size:15px; font-weight:700; cursor:pointer; }
+.pw-cancel { margin-top:8px; background:none; border:none; font-size:12px; color:#999; cursor:pointer; }
+.pw-error { color:#c0392b; font-size:12px; margin-top:8px; display:none; }
+
+/* ===== 結果 ===== */
+.result-screen { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); overflow-y:auto; }
+.result-screen.active { display:block; }
+.result-header { background:var(--card); border-bottom:3px solid var(--accent); padding:18px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; }
+.result-title { font-size:16px; font-weight:700; }
+.result-count { font-size:13px; color:var(--accent); margin-top:3px; font-weight:500; }
+.result-close { background:var(--bg); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:7px 14px; font-size:13px; cursor:pointer; font-family:'Noto Sans JP',sans-serif; }
+.result-section { margin:14px 14px 0; background:var(--card); border-radius:8px; border:1px solid var(--border); overflow:hidden; }
+.result-sec-title { background:var(--hbg); padding:10px 14px; font-size:13px; font-weight:700; color:var(--hcolor); border-bottom:1px solid var(--border); }
+.bar-list { padding:12px 14px; }
+.bar-item { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+.bar-name { font-size:12px; min-width:95px; text-align:right; flex-shrink:0; font-weight:500; }
+.bar-track { flex:1; background:var(--bg); border-radius:3px; height:20px; }
+.bar-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.6s ease; min-width:3px; }
+.bar-fill.gold{background:#c9a227;} .bar-fill.silver{background:#8a9ba8;} .bar-fill.bronze{background:#b07040;}
+.bar-num { font-size:12px; color:var(--muted); min-width:30px; flex-shrink:0; }
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); }
+.stat-item { background:var(--card); padding:10px; text-align:center; }
+.stat-label { font-size:11px; color:var(--muted); margin-bottom:3px; }
+.stat-val { font-size:20px; font-weight:700; color:var(--accent); }
+.result-bottom { height:40px; }
+</style>
+</head>
+<body>
+
+<!-- ========== COVER ========== -->
+<div id="screen-cover" class="screen active">
+  <div class="cover-wrap">
+    <div class="cover-sub">第2回 鬼交流会展・掌中宇宙</div>
+    <div class="cover-title">デジタル芳名帳</div>
+    <div class="cover-sub2">掌中宇宙</div>
+    <div class="cover-rule"></div>
+    <div class="cover-date">2026年4月20日（月）— 4月25日（土）<br>アートスペース 羅針盤</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <button class="main-btn btn-gold" onclick="goTo('profile')">
+        📝 芳名帳に記帳する
+        <span class="btn-sub">▶ はじめての方はまずこちら</span>
+      </button>
+      <button class="main-btn btn-outline" onclick="goToCommentDirect()" style="border:2px solid var(--accent);color:#ffffff;">
+        💬 応援コメントを書く
+        <span class="btn-sub" style="color:var(--accent);">作家へメッセージを送る</span>
+      </button>
+      <button class="main-btn btn-red" onclick="goTo('vote')">
+        🗳️ 投票する
+        <span class="btn-sub">気になった作家に投票</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PROFILE ========== -->
+<div id="screen-profile" class="screen">
+  <div class="nav-bar">
+    <span class="nav-title">デジタル芳名帳</span>
+    <button class="nav-btn" onclick="goTo('cover')">▲ トップへ</button>
+  </div>
+  <div class="page-header">
+    <div class="ph-sub">STEP 1</div>
+    <div class="ph-title">ご来場の記帳</div>
+  </div>
+  <div class="visit-box">
+    <div>
+      <div class="visit-label">来場日時（自動記録）</div>
+      <div class="visit-val" id="visit-val">—</div>
+    </div>
+  </div>
+  <div style="padding:14px 12px 0;">
+    <div class="field-group">
+      <label class="field-label">お住まいの都道府県<span class="req">*</span></label>
+      <select class="field-input" id="pref-select">
+        <option value="">選択してください</option>
+        <option>北海道</option><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option><option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option><option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option><option>山梨県</option><option>長野県</option><option>岐阜県</option><option>静岡県</option><option>愛知県</option><option>三重県</option><option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option><option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option><option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option><option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option><option>宮崎県</option><option>鹿児島県</option><option>沖縄県</option><option>海外在住</option>
+      </select>
+      <div class="error-hint" id="err-pref">▲ 都道府県を選択してください</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">性別</label>
+      <div class="btn-grid col3" style="gap:8px;">
+        <button class="choice-btn" data-group="gender" data-val="男性" onclick="selectPill(this)">男性</button>
+        <button class="choice-btn" data-group="gender" data-val="女性" onclick="selectPill(this)">女性</button>
+        <button class="choice-btn" data-group="gender" data-val="その他" onclick="selectPill(this)">その他</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">年代</label>
+      <div class="btn-grid col5" style="gap:7px;">
+        <button class="age-btn" data-group="age" data-val="10代" onclick="selectPill(this)">10代</button>
+        <button class="age-btn" data-group="age" data-val="20代" onclick="selectPill(this)">20代</button>
+        <button class="age-btn" data-group="age" data-val="30代" onclick="selectPill(this)">30代</button>
+        <button class="age-btn" data-group="age" data-val="40代" onclick="selectPill(this)">40代</button>
+        <button class="age-btn" data-group="age" data-val="50代" onclick="selectPill(this)">50代</button>
+        <button class="age-btn" data-group="age" data-val="60代" onclick="selectPill(this)">60代</button>
+        <button class="age-btn" data-group="age" data-val="70代" onclick="selectPill(this)">70代</button>
+        <button class="age-btn" data-group="age" data-val="80代" onclick="selectPill(this)">80代</button>
+        <button class="age-btn" data-group="age" data-val="90代以上" onclick="selectPill(this)" style="font-size:12px;">90代<br>以上</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">お名前（任意）</label>
+      <input class="field-input" id="visitor-name" type="text" placeholder="例：山田 太郎　／　匿名でも可">
+    </div>
+    <div class="field-group">
+      <label class="field-label">この展覧会を何でお知りになりましたか？</label>
+      <div class="btn-grid col2" style="gap:8px;">
+        <button class="choice-btn" data-group="source" data-val="小木曽のSNS" onclick="selectPill(this)">① 小木曽のSNS</button>
+        <button class="choice-btn" data-group="source" data-val="友人から聞いた" onclick="selectPill(this)">② 友人から聞いた</button>
+        <button class="choice-btn" data-group="source" data-val="雑誌・記事など" onclick="selectPill(this)">③ 雑誌・記事など</button>
+        <button class="choice-btn" data-group="source" data-val="その他" onclick="selectPill(this)">④ その他</button>
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px 12px 40px;display:flex;flex-direction:column;gap:12px;">
+    <div style="font-size:13px;color:var(--muted);text-align:center;">記帳が完了したら</div>
+    <button class="main-btn btn-black" onclick="saveAndExit()">
+      🖼️ 展覧会を見に行く
+      <span class="btn-sub">記帳を保存してそのまま鑑賞へ</span>
+    </button>
+    <button class="main-btn" onclick="saveAndGoComment()" style="background:transparent;border:2px solid var(--accent);color:var(--ink);">
+      💬 応援コメントを書く
+      <span class="btn-sub" style="color:var(--muted);">作家一覧へ進む</span>
+    </button>
+  </div>
+</div>
+
+<!-- ========== THANKS-EXIT ========== -->
+<div id="screen-thanks-exit" class="screen">
+  <div class="nav-bar" style="width:100%;position:relative;">
+    <span class="nav-title">デジタル芳名帳</span>
+    <button class="nav-btn" onclick="goTo('cover')">▲ トップへ</button>
+  </div>
+  <div style="max-width:380px;width:100%;padding:40px 20px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">🎨</div>
+    <div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:6px;">ご記帳ありがとうございました！</div>
+    <div style="font-size:18px;color:var(--accent);margin-bottom:24px;" id="exit-name"></div>
+    <div style="width:40px;height:2px;background:var(--accent);margin:0 auto 24px;"></div>
+    <div style="font-size:16px;color:rgba(245,240,232,0.75);line-height:2;margin-bottom:32px;">次に何をしますか？</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <button class="main-btn" onclick="goTo('cover')" style="background:#fff;color:var(--ink);">
+        🖼️ 展覧会を見に行く
+        <span class="btn-sub" style="color:var(--muted);">このまま鑑賞へ</span>
+      </button>
+      <button class="main-btn" onclick="goToCommentDirect()" style="background:transparent;border:2px solid var(--accent);color:#fff;">
+        💬 応援コメントを書く
+        <span class="btn-sub" style="color:var(--accent);">作家へメッセージを送る</span>
+      </button>
+      <button class="main-btn btn-red" onclick="goTo('vote')">
+        🗳️ 投票する
+        <span class="btn-sub">気になった作家に投票</span>
+      </button>
+      <button onclick="goTo('cover')" style="background:transparent;border:none;color:#666;font-family:'Noto Sans JP',sans-serif;font-size:15px;cursor:pointer;padding:12px;text-decoration:underline;">トップへ戻る</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ARTISTS ========== -->
+<div id="screen-artists" class="screen">
+  <div class="nav-bar">
+    <span class="nav-title">デジタル芳名帳</span>
+    <button class="nav-btn" onclick="goTo('cover')">▲ トップへ</button>
+  </div>
+  <div class="page-header">
+    <div class="ph-sub">STEP 2</div>
+    <div class="ph-title">応援したい作家を選ぶ</div>
+    <div class="ph-badge" id="visitor-tag"></div>
+  </div>
+  <div style="padding:10px 12px;">
+    <input class="field-input" type="text" placeholder="作家名で検索…" oninput="filterArtists(this.value)" style="margin:0;">
+  </div>
+  <div class="artist-grid-wrap" id="artist-grid"></div>
+  <div style="padding:12px 12px 40px;">
+    <button class="main-btn btn-ghost" onclick="goTo('cover')" style="border:1px solid var(--border);">トップへ戻る</button>
+  </div>
+</div>
+
+<!-- ========== COMMENT ========== -->
+<div id="screen-comment" class="screen">
+  <div class="nav-bar">
+    <span class="nav-title">デジタル芳名帳</span>
+    <button class="nav-btn" onclick="goTo('cover')">▲ トップへ</button>
+  </div>
+  <div class="page-header" style="text-align:left;">
+    <button onclick="goTo('artists')" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif;">← 一覧に戻る</button>
+    <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;" id="ch-no"></div>
+    <div style="font-size:24px;font-weight:700;color:var(--hcolor);" id="ch-name"></div>
+  </div>
+  <div class="comment-form" id="comment-form-wrap">
+    <div class="field-group" style="margin-bottom:14px;">
+      <label class="field-label">メッセージ（任意・空欄でも送信可）</label>
+      <textarea class="field-input" id="comment-text" rows="5" placeholder="作品の感想、応援のことばなど…"></textarea>
+    </div>
+    <button class="main-btn btn-black" onclick="sendComment()" style="font-size:16px;">送 信</button>
+  </div>
+  <div class="sent-box" id="sent-box">
+    <div style="font-size:32px;margin-bottom:10px;">✦</div>
+    <div style="font-size:16px;line-height:2;margin-bottom:16px;">メッセージを送りました。<br>ありがとうございます。</div>
+    <button class="sent-another" onclick="goTo('artists')">他の作家にもコメントする</button>
+  </div>
+  <div class="comments-wrap">
+    <div class="comments-title">— 寄せられたメッセージ —</div>
+    <div id="comments-list"></div>
+  </div>
+</div>
+
+<!-- ========== VOTE ========== -->
+<div id="screen-vote" class="screen">
+  <!-- プレゼントバナー -->
+  <div class="present-banner">
+    <div class="present-banner-text">🎁 投票してくれた方に素敵なプレゼント！</div>
+    <div class="present-banner-sub">投票完了後にポストカードをお受け取りください（なくなり次第終了）</div>
+  </div>
+  <div class="page-header">
+    <div class="ph-sub">第2回 鬼交流会展・掌中宇宙</div>
+    <div class="ph-title">来場者アンケート＆投票</div>
+    <div class="ph-badge">全参加作家バージョン</div>
+  </div>
+  <!-- 固定バー -->
+  <div class="sticky-bar">
+    <div class="sticky-label">選んだ作家さん（3名）</div>
+    <div class="slots">
+      <div class="slot" id="vslot0"><span class="slot-num">1人目</span>—</div>
+      <div class="slot" id="vslot1"><span class="slot-num">2人目</span>—</div>
+      <div class="slot" id="vslot2"><span class="slot-num">3人目</span>—</div>
+    </div>
+    <button class="submit-sticky" id="submitSticky" onclick="submitVote()">投　票　す　る</button>
+  </div>
+  <!-- Q1 -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-num">1</div>性別をお選びください</div>
+    <div class="sec-body">
+      <div class="btn-grid col3">
+        <button class="choice-btn" data-group="vgender" data-val="男性" onclick="selectPill(this)">男性</button>
+        <button class="choice-btn" data-group="vgender" data-val="女性" onclick="selectPill(this)">女性</button>
+        <button class="choice-btn" data-group="vgender" data-val="どちらでもない" onclick="selectPill(this)">どちらでも<br>ない</button>
+      </div>
+    </div>
+  </div>
+  <!-- Q2 -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-num">2</div>年代をお選びください</div>
+    <div class="sec-body">
+      <div class="btn-grid col5" style="gap:7px;">
+        <button class="age-btn" data-group="vage" data-val="10代" onclick="selectPill(this)">10代</button>
+        <button class="age-btn" data-group="vage" data-val="20代" onclick="selectPill(this)">20代</button>
+        <button class="age-btn" data-group="vage" data-val="30代" onclick="selectPill(this)">30代</button>
+        <button class="age-btn" data-group="vage" data-val="40代" onclick="selectPill(this)">40代</button>
+        <button class="age-btn" data-group="vage" data-val="50代" onclick="selectPill(this)">50代</button>
+        <button class="age-btn" data-group="vage" data-val="60代" onclick="selectPill(this)">60代</button>
+        <button class="age-btn" data-group="vage" data-val="70代" onclick="selectPill(this)">70代</button>
+        <button class="age-btn" data-group="vage" data-val="80代" onclick="selectPill(this)">80代</button>
+        <button class="age-btn" data-group="vage" data-val="90代" onclick="selectPill(this)">90代</button>
+        <button class="age-btn" data-group="vage" data-val="100代以上" onclick="selectPill(this)" style="font-size:11px;">100代<br>以上</button>
+      </div>
+    </div>
+  </div>
+  <!-- Q3 -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-num">3</div>この展覧会を何でお知りになりましたか？</div>
+    <div class="sec-body">
+      <div class="btn-grid col2">
+        <button class="choice-btn" data-group="vsource" data-val="小木曽のSNS" onclick="selectPill(this)">① 小木曽のSNS</button>
+        <button class="choice-btn" data-group="vsource" data-val="友人から聞いた" onclick="selectPill(this)">② 友人から聞いた</button>
+        <button class="choice-btn" data-group="vsource" data-val="雑誌・記事など" onclick="selectPill(this)">③ 雑誌・記事など</button>
+        <button class="choice-btn" data-group="vsource" data-val="その他" onclick="selectPill(this)">④ その他</button>
+      </div>
+    </div>
+  </div>
+  <!-- Q4 作家 -->
+  <div class="section" style="margin-bottom:14px;">
+    <div class="sec-head"><div class="sec-num">4</div>気になった作家さんを3名選んでください</div>
+    <div style="font-size:12px;color:var(--muted);margin:10px 12px 0;padding:8px 12px;background:var(--card);border-left:3px solid var(--accent);border:1px solid var(--border);border-left:3px solid var(--accent);line-height:1.6;">※ なお、全ての作家さんが参加しているわけではございません</div>
+    <div class="vote-artist-grid" id="vote-artist-grid"></div>
+  </div>
+  <div style="margin:0 12px 12px;text-align:right;">
+    <button onclick="showPwScreen()" style="background:none;border:1px solid #555;border-radius:4px;padding:6px 12px;font-size:11px;color:#aaa;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">管理者メニュー</button>
+  </div>
+  <div style="padding:0 12px 40px;">
+    <button class="main-btn btn-ghost" onclick="goTo('cover')" style="border:1px solid var(--border);">▲ トップへ戻る</button>
+  </div>
+</div>
+
+<!-- ========== VOTE THANKS ========== -->
+<div id="screen-vote-thanks" class="screen">
+  <div style="max-width:360px;width:100%;text-align:center;padding:20px;">
+    <div class="vt-circle">🎨</div>
+    <div class="vt-accepted">投票受付完了</div>
+    <div class="vt-title">ありがとうございました！</div>
+    <div class="vt-line"></div>
+    <div class="vt-sub">引き続きごゆっくり<br>展覧会をお楽しみください</div>
+    <div class="present-box">
+      <div class="present-icon">🎁</div>
+      <div class="present-title">素敵なプレゼント！</div>
+      <div class="present-desc">投票してくださった方に<br><strong>ポストカード</strong>をプレゼント！<br>スタッフにお声がけください</div>
+      <div class="present-note">※ なくなり次第終了となります</div>
+    </div>
+    <div style="margin-top:20px;font-size:12px;color:#666;">※ 投票は1回のみ受け付けております</div>
+    <div style="margin-top:24px;border-top:1px solid #333;padding-top:20px;display:flex;flex-direction:column;gap:10px;align-items:center;width:100%;">
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">小木曽誠のYouTubeもぜひご覧ください</div>
+      <a href="https://youtube.com/@onikouhyo-ogiso" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#ff0000;color:#fff;text-decoration:none;border-radius:8px;padding:12px 20px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;width:100%;justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        小木曽誠の鬼講評会を見る
+      </a>
+    </div>
+    <button onclick="goTo('cover')" style="margin-top:20px;background:transparent;color:rgba(245,240,232,0.5);border:1px solid #555;border-radius:8px;padding:12px 32px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">トップへ戻る</button>
+  </div>
+</div>
+
+<!-- ========== ARTIST VIEW ========== -->
+<div id="screen-artist-view" class="screen">
+  <div class="nav-bar">
+    <span class="nav-title">作家専用ページ</span>
+    <button class="nav-btn" onclick="goTo('cover')">▲ トップへ</button>
+  </div>
+  <div class="page-header">
+    <div style="font-size:12px;color:var(--accent);margin-bottom:6px;">✦ 作家専用</div>
+    <div style="font-size:26px;font-weight:700;color:var(--hcolor);" id="av-name"></div>
+  </div>
+  <div style="padding:14px 12px;">
+    <div style="background:var(--card);border:2px solid var(--accent);border-radius:8px;padding:16px;text-align:center;margin-bottom:20px;">
+      <div style="font-size:32px;font-weight:700;color:var(--accent);" id="av-count">0</div>
+      <div style="font-size:13px;color:var(--muted);">件のメッセージ</div>
+    </div>
+    <div class="comments-title">— あなたへのメッセージ —</div>
+    <div id="av-comments"></div>
+  </div>
+</div>
+
+<!-- ========== パスワード ========== -->
+<div class="pw-screen" id="pwScreen">
+  <div class="pw-box">
+    <div class="pw-title">管理者パスワードを入力</div>
+    <input class="pw-input" type="password" id="pwInput" placeholder="••••" maxlength="20">
+    <div class="pw-error" id="pwError">パスワードが違います</div>
+    <button class="pw-submit" onclick="checkPassword()">確認</button>
+    <button class="pw-cancel" onclick="hidePwScreen()">キャンセル</button>
+  </div>
+</div>
+
+<!-- ========== 結果 ========== -->
+<div class="result-screen" id="resultScreen">
+  <div class="result-header">
+    <div><div class="result-title">投票結果 — 管理者専用</div><div class="result-count" id="totalCount">総投票数：0件</div></div>
+    <button class="result-close" onclick="closeResult()">閉じる</button>
+  </div>
+  <div class="result-section" style="margin-top:14px;">
+    <div class="result-sec-title">🏆 作家ランキング</div>
+    <div class="bar-list" id="artistResult"></div>
+  </div>
+  <div class="result-section">
+    <div class="result-sec-title">📊 来場者属性</div>
+    <div class="stat-grid" id="attrResult"></div>
+  </div>
+  <div class="result-section">
+    <div class="result-sec-title">📣 展覧会を知ったきっかけ</div>
+    <div class="bar-list" id="sourceResult"></div>
+  </div>
+  <div class="result-bottom"></div>
+</div>
+
+<script>
+// ===== データ =====
+const ARTISTS = [
+  {no:1,name:'山田優子'},{no:2,name:'神野由佳'},{no:3,name:'ロジャー 由季'},
+  {no:4,name:'Futaba Wood'},{no:5,name:'筧 美恵子'},{no:6,name:'Manila Sumire'},
+  {no:7,name:'根本千鶴子'},{no:8,name:'岡田 知之'},{no:9,name:'大高さき子'},
+  {no:10,name:'髙橋 聡子'},{no:11,name:'宇都宮 文'},{no:12,name:'木村敬子'},
+  {no:13,name:'堀子慶子'},{no:14,name:'松崎惠'},{no:15,name:'山田房子'},
+  {no:16,name:'稲葉純子'},{no:17,name:'山田武司'},{no:18,name:'北川利枝子'},
+  {no:19,name:'川口 和子'},{no:20,name:'小松 忍'},{no:21,name:'道下 外喜枝'},
+  {no:22,name:'清水優子'},{no:23,name:'長井 浩'},{no:24,name:'山崎裕子'},
+  {no:25,name:'伊藤夏海'},{no:26,name:'菅澤聖康'},{no:27,name:'倉茂浩一'},
+  {no:28,name:'波江野真里'},{no:29,name:'見津 美智留'},{no:30,name:'萩尾堅治'},
+  {no:31,name:'萩尾ふみ子'},{no:32,name:'竹内佳子'},{no:33,name:'三浦真里亜'},
+  {no:34,name:'福岡弘美'},{no:35,name:'原田幸代'},{no:36,name:'松浦るみ'},
+  {no:37,name:'堀田 実'},{no:38,name:'石原敬久'},{no:39,name:'出島和宏'},
+  {no:40,name:'三谷 美奈子'},{no:41,name:'藏内美樹'},{no:42,name:'山内教子'},
+  {no:43,name:'按 優乃'},{no:44,name:'馬場崎のり子'},{no:45,name:'岡崎都子'},
+  {no:46,name:'中村倶子'},{no:47,name:'原田美紀'},{no:48,name:'高野温子'},
+  {no:49,name:'久保 浩美'},{no:50,name:'島袋 洋'},{no:51,name:'鈴木愉佳'},
+];
+
+const TOKEN = 'oni2view';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxAK32okbQIWUBTy2tsqIW-7GKlx0NPr7mLkB9HuKBJ4HilPeimjKZebtFO1V_3KIov/exec';
+const ADMIN_PW = 'ogiso2025';
+let visitor = {pref:'',gender:'',age:'',name:'',source:'',visitDate:'',visitTime:''};
+let currentNo = null;
+const voteAnswers = {gender:null, age:null, source:null, artists:[]};
+const voteData = {votes:[], genderCount:{}, ageCount:{}, sourceCount:{}};
+
+// ===== ルーティング =====
+const SCREENS = ['cover','profile','artists','comment','thanks-exit','vote','vote-thanks','artist-view'];
+
+function route() {
+  const h = location.hash.replace('#','');
+  if (h.startsWith('artist/')) {
+    const p = h.split('/');
+    if (p[2]===TOKEN) { showArtistView(parseInt(p[1])); return; }
+  }
+  setDatetime();
+  renderVoteArtistGrid();
+  goTo('cover');
+}
+window.addEventListener('load', route);
+
+function goTo(name) {
+  SCREENS.forEach(s => document.getElementById('screen-'+s).classList.remove('active'));
+  const t = document.getElementById('screen-'+name);
+  t.classList.add('active');
+  t.scrollIntoView({behavior:'instant', block:'start'});
+}
+
+// ===== 日時 =====
+function setDatetime() {
+  const now = new Date();
+  const m = now.getMonth()+1, d = now.getDate();
+  const ampm = now.getHours()<12 ? '午前' : '午後';
+  const txt = m+'月'+d+'日（'+ampm+'）';
+  const el = document.getElementById('visit-val');
+  if (el) el.textContent = txt;
+  visitor.visitDate = m+'月'+d+'日';
+  visitor.visitTime = ampm;
+}
+
+// ===== ピル選択 =====
+function selectPill(el) {
+  const g = el.dataset.group;
+  document.querySelectorAll('[data-group="'+g+'"]').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function getSelected(g) {
+  const s = document.querySelector('.selected[data-group="'+g+'"]');
+  return s ? s.dataset.val : '';
+}
+
+// ===== プロフィール =====
+function validateProfile() {
+  const prefEl = document.getElementById('pref-select');
+  const errEl = document.getElementById('err-pref');
+  if (!prefEl.value) {
+    prefEl.classList.remove('field-error'); void prefEl.offsetWidth;
+    prefEl.classList.add('field-error'); errEl.classList.add('show');
+    prefEl.addEventListener('change',()=>{prefEl.classList.remove('field-error');errEl.classList.remove('show');},{once:true});
+    prefEl.scrollIntoView({behavior:'smooth',block:'center'});
+    return false;
+  }
+  return true;
+}
+
+function collectVisitor() {
+  visitor.pref   = document.getElementById('pref-select').value;
+  visitor.gender = getSelected('gender');
+  visitor.age    = getSelected('age');
+  visitor.source = getSelected('source');
+  visitor.name   = document.getElementById('visitor-name').value.trim() || '匿名';
+}
+
+function saveAndExit() {
+  if (!validateProfile()) return;
+  collectVisitor();
+  const el = document.getElementById('exit-name');
+  if (el && visitor.name !== '匿名') el.textContent = visitor.name+' さん';
+  sendVisitorToGAS();
+  goTo('thanks-exit');
+}
+
+async function sendVisitorToGAS() {
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'visitor',
+        date: visitor.visitDate,
+        time: visitor.visitTime,
+        name: visitor.name,
+        pref: visitor.pref,
+        gender: visitor.gender,
+        age: visitor.age,
+        source: visitor.source
+      })
+    });
+  } catch(e) { console.log('GAS送信エラー:', e); }
+}
+
+function saveAndGoComment() {
+  if (!validateProfile()) return;
+  collectVisitor();
+  sendVisitorToGAS();
+  renderArtistGrid('');
+  updateTag();
+  goTo('artists');
+}
+
+function goToCommentDirect() {
+  renderArtistGrid('');
+  updateTag();
+  goTo('artists');
+}
+
+function updateTag() {
+  const el = document.getElementById('visitor-tag');
+  if (!el) return;
+  const parts = [visitor.name, visitor.pref, visitor.age].filter(Boolean);
+  el.textContent = parts.join('　');
+}
+
+// ===== 作家グリッド（コメント用） =====
+function renderArtistGrid(filter) {
+  const grid = document.getElementById('artist-grid');
+  const list = filter ? ARTISTS.filter(a=>a.name.includes(filter)||String(a.no).includes(filter)) : ARTISTS;
+  grid.innerHTML = list.map(a=>{
+    const comments = loadComments(a.no);
+    const badge = comments.length>0 ? `<span class="tile-badge">✦ ${comments.length}件</span>` : '';
+    return `<button class="artist-tile" onclick="openComment(${a.no})"><span class="tile-no">No.${a.no}</span>${a.name}${badge}</button>`;
+  }).join('');
+}
+function filterArtists(v) { renderArtistGrid(v); }
+
+// ===== コメント =====
+function openComment(no) {
+  currentNo = no;
+  const a = ARTISTS.find(x=>x.no===no);
+  document.getElementById('ch-no').textContent = 'No. '+a.no;
+  document.getElementById('ch-name').textContent = a.name;
+  document.getElementById('comment-text').value = '';
+  document.getElementById('comment-form-wrap').style.display = 'block';
+  document.getElementById('sent-box').classList.remove('show');
+  renderCommentList(no);
+  goTo('comment');
+}
+
+async function sendComment() {
+  const textEl = document.getElementById('comment-text');
+  const now = new Date();
+  const date = (now.getMonth()+1)+'/'+(now.getDate());
+  const a = ARTISTS.find(x=>x.no===currentNo);
+  const comment = { name:visitor.name||'匿名', pref:visitor.pref||'', age:visitor.age||'', text:textEl.value.trim(), date };
+  // ローカル保存
+  const comments = loadComments(currentNo);
+  comments.unshift(comment);
+  saveComments(currentNo, comments);
+  // GASに送信
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'comment',
+        date: date,
+        artistNo: currentNo,
+        artistName: a ? a.name : '',
+        name: comment.name,
+        pref: comment.pref,
+        comment: comment.text
+      })
+    });
+  } catch(e) { console.log('GASコメント送信エラー:', e); }
+  document.getElementById('comment-form-wrap').style.display = 'none';
+  document.getElementById('sent-box').classList.add('show');
+  renderCommentList(currentNo);
+  renderArtistGrid('');
+}
+
+function renderCommentList(no) {
+  const area = document.getElementById('comments-list');
+  const comments = loadComments(no);
+  if (!comments.length) { area.innerHTML = '<div class="no-comment">まだメッセージはありません</div>'; return; }
+  area.innerHTML = comments.map(c=>`
+    <div class="comment-item">
+      <div class="c-meta">
+        <span class="c-name">${esc(c.name)}</span>
+        <span class="c-info">${esc(c.pref)}${c.age?' '+esc(c.age):''}</span>
+        <span class="c-date">${esc(c.date)}</span>
+      </div>
+      ${c.text?'<div class="c-text">'+esc(c.text).replace(/\n/g,'<br>')+'</div>':''}
+    </div>`).join('');
+}
+
+// ===== 投票 =====
+const VOTE_ARTISTS = ARTISTS.filter(a => ![1,3,4,22,24,34,43].includes(a.no));
+
+function renderVoteArtistGrid() {
+  const grid = document.getElementById('vote-artist-grid');
+  if (!grid) return;
+  grid.innerHTML = VOTE_ARTISTS.map(a=>`
+    <button class="vote-artist-btn" data-vname="${a.name}" onclick="selectVoteArtist(this)">
+      <span class="vno">No.${a.no}</span>${a.name}
+    </button>`).join('');
+}
+
+function selectVoteArtist(btn) {
+  const name = btn.dataset.vname;
+  if (btn.classList.contains('selected')) {
+    btn.classList.remove('selected');
+    voteAnswers.artists = voteAnswers.artists.filter(n=>n!==name);
+  } else {
+    if (voteAnswers.artists.length>=3) return;
+    btn.classList.add('selected');
+    voteAnswers.artists.push(name);
+  }
+  updateVoteSlots();
+}
+
+function updateVoteSlots() {
+  for (let i=0;i<3;i++) {
+    const slot = document.getElementById('vslot'+i);
+    const name = voteAnswers.artists[i];
+    if (name) { slot.classList.add('filled'); slot.innerHTML=`<span class="slot-num">${i+1}人目</span>${name}`; }
+    else { slot.classList.remove('filled'); slot.innerHTML=`<span class="slot-num">${i+1}人目</span>—`; }
+  }
+  const btn = document.getElementById('submitSticky');
+  if (voteAnswers.artists.length===3) btn.classList.add('ready');
+  else btn.classList.remove('ready');
+}
+
+async function submitVote() {
+  if (!getSelected('vgender')) { alert('性別を選択してください'); return; }
+  if (!getSelected('vage')) { alert('年代を選択してください'); return; }
+  if (!getSelected('vsource')) { alert('展覧会を知ったきっかけを選択してください'); return; }
+  if (voteAnswers.artists.length!==3) { alert('作家さんを3名選んでください'); return; }
+  const g=getSelected('vgender'), a=getSelected('vage'), s=getSelected('vsource');
+  voteData.votes.push([...voteAnswers.artists]);
+  voteData.genderCount[g]=(voteData.genderCount[g]||0)+1;
+  voteData.ageCount[a]=(voteData.ageCount[a]||0)+1;
+  voteData.sourceCount[s]=(voteData.sourceCount[s]||0)+1;
+  // GASに送信
+  const now = new Date();
+  const date = (now.getMonth()+1)+'/'+(now.getDate());
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'vote',
+        date: date,
+        gender: g,
+        age: a,
+        source: s,
+        artists: voteAnswers.artists.join('、')
+      })
+    });
+  } catch(e) { console.log('GAS投票送信エラー:', e); }
+  goTo('vote-thanks');
+}
+
+// ===== 作家専用 =====
+function showArtistView(no) {
+  const a = ARTISTS.find(x=>x.no===no);
+  if (!a) { goTo('cover'); return; }
+  document.getElementById('av-name').textContent = a.name;
+  const comments = loadComments(no);
+  document.getElementById('av-count').textContent = comments.length;
+  const area = document.getElementById('av-comments');
+  if (!comments.length) { area.innerHTML='<div class="no-comment">まだメッセージはありません</div>'; }
+  else { area.innerHTML=comments.map(c=>`
+    <div class="comment-item">
+      <div class="c-meta"><span class="c-name">${esc(c.name)}</span><span class="c-info">${esc(c.pref)}${c.age?' '+esc(c.age):''}</span><span class="c-date">${esc(c.date)}</span></div>
+      ${c.text?'<div class="c-text">'+esc(c.text).replace(/\n/g,'<br>')+'</div>':''}
+    </div>`).join(''); }
+  goTo('artist-view');
+}
+
+// ===== 管理者 =====
+function showPwScreen() { document.getElementById('pwInput').value=''; document.getElementById('pwError').style.display='none'; document.getElementById('pwScreen').classList.add('active'); setTimeout(()=>document.getElementById('pwInput').focus(),100); }
+function hidePwScreen() { document.getElementById('pwScreen').classList.remove('active'); }
+function checkPassword() { if(document.getElementById('pwInput').value===ADMIN_PW){hidePwScreen();showResult();}else{document.getElementById('pwError').style.display='block';} }
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('pwScreen').classList.contains('active'))checkPassword();});
+
+function showResult() {
+  document.getElementById('resultScreen').classList.add('active');
+  window.scrollTo(0,0);
+  const total=voteData.votes.length;
+  document.getElementById('totalCount').textContent=`総投票数：${total}件`;
+  const ac={};
+  voteData.votes.forEach(v=>v.forEach(n=>{ac[n]=(ac[n]||0)+1;}));
+  const sorted=Object.entries(ac).sort((a,b)=>b[1]-a[1]);
+  const maxV=sorted.length>0?sorted[0][1]:1;
+  document.getElementById('artistResult').innerHTML=sorted.length===0
+    ?'<div style="color:#aaa;font-size:13px;padding:8px 0">まだ投票がありません</div>'
+    :sorted.map(([name,cnt],i)=>{
+      const pct=Math.round(cnt/maxV*100);
+      const cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+      return `<div class="bar-item"><div class="bar-name">${medal} ${name}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div><div class="bar-num">${cnt}票</div></div>`;
+    }).join('');
+  const gL=['男性','女性','どちらでもない'];
+  const aL=['10代','20代','30代','40代','50代','60代','70代','80代','90代','100代以上'];
+  document.getElementById('attrResult').innerHTML=
+    gL.map(l=>`<div class="stat-item"><div class="stat-label">${l}</div><div class="stat-val">${voteData.genderCount[l]||0}</div></div>`).join('')+
+    aL.map(l=>`<div class="stat-item"><div class="stat-label">${l}</div><div class="stat-val">${voteData.ageCount[l]||0}</div></div>`).join('');
+  const sL=['小木曽のSNS','友人から聞いた','雑誌・記事など','その他'];
+  const maxS=Math.max(...sL.map(l=>voteData.sourceCount[l]||0),1);
+  document.getElementById('sourceResult').innerHTML=sL.map(l=>{
+    const cnt=voteData.sourceCount[l]||0;
+    return `<div class="bar-item"><div class="bar-name">${l}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(cnt/maxS*100)}%"></div></div><div class="bar-num">${cnt}</div></div>`;
+  }).join('');
+}
+function closeResult() { document.getElementById('resultScreen').classList.remove('active'); }
+
+// ===== ストレージ =====
+function saveComments(no,data){try{localStorage.setItem('oni2-c-'+no,JSON.stringify(data));}catch(e){}}
+function loadComments(no){try{const d=localStorage.getItem('oni2-c-'+no);return d?JSON.parse(d):[]; }catch(e){return[];}}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// 作家専用URL一覧（コンソールで generateUrls() で確認）
+function generateUrls(){return ARTISTS.map(a=>({no:a.no,name:a.name,url:location.origin+location.pathname+'#artist/'+a.no+'/'+TOKEN}));}
+</script>
+</body>
+</html>
