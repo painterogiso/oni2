@@ -618,7 +618,7 @@ const ARTISTS = [
 ];
 
 const TOKEN = 'oni2view';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBsaF-kO1q5S39Bb_LxgixL4mgiRgadW5kf654yxeifi5lxw-i9A2c4KJzcpXBYBwv/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzAvKTGFHlmeiLxQHaqXL4Mad9uTc83LfRfeJzzz70_dMwl_Nx1oe9Qmp8oGRTnHyCD/exec';
 const ADMIN_PW = 'ogiso2025';
 let visitor = {pref:'',gender:'',age:'',name:'',source:'',visitDate:'',visitTime:''};
 let currentNo = null;
@@ -813,7 +813,7 @@ function renderCommentList(no) {
 }
 
 // ===== 投票 =====
-const VOTE_ARTISTS = ARTISTS.filter(a => ![1,3,4,22,24,34,43,51].includes(a.no));
+const VOTE_ARTISTS = ARTISTS.filter(a => ![1,3,4,22,24,34,43].includes(a.no));
 
 function renderVoteArtistGrid() {
   const grid = document.getElementById('vote-artist-grid');
